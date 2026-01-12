@@ -1,5 +1,5 @@
 use ("car_dealership")
-
+db.dropDatabase();
 db.getCollectionNames()
 
 
@@ -184,7 +184,7 @@ db.cars.aggregate([
 id: 0, maker: 1, model: 1,
 fuelCategory: {
 $cond: {
-if: { $eq: ["$fuel_type"]},
+if: { $eq: ["$fuel_type",7890]},
 then: "Petrol Car",
 else: "Non-Petrol Car"
 }
@@ -235,3 +235,175 @@ amount: 7 }
 }
 }
 ])
+
+db.cars.aggregate(
+{$project:{
+_id:0,model:1,date:"$$NOW"}})
+
+db.data.aggregate([
+{
+  $project: {
+    maker: 1,
+    model: 1,
+    total_service_cost: 1,
+    cost_status: {
+      $let: {
+        vars: {
+          totalCost: "$total_service_cost"
+        },
+        in: {
+          $cond: {
+            if: { $gte: ["$$totalCost", 10000] },
+            then: "High",
+            else: "Low"
+          }
+        }
+      }
+    }
+  }
+}
+])
+
+db.user.insertMany(
+    [
+    {
+        "_id": "user1",
+        "name": "Amit Sharma",
+        "email": "amit.sharma@example.com",
+        "phone": "+91-987654210",
+        "address": "MG Road, Mumbai, Maharashtra"
+    },
+    {
+        "_id": "user2",
+        "name": "Priya Verma",
+        "email": "priya.verma@example.com",
+        "phone": "+91-987654211",
+        "address": "Nehru Place, New Delhi, Delhi"
+    },
+    {
+        "_id": "user3",
+        "name": "Rahul Singh",
+        "email": "rahul.singh@example.com",
+        "phone": "+91-987654212",
+        "address": "Sector 18, Noida, Uttar Pradesh"
+    },
+    {
+        "_id": "user4",
+        "name": "Anjali Nair",
+        "email": "anjali.nair@example.com",
+        "phone": "+91-987654213",
+        "address": "Marine Drive, Kochi, Kerala"
+    },
+    {
+        "_id": "user5",
+        "name": "Vikram Desai",
+        "email": "vikram.desai@example.com",
+        "phone": "+91-987654214",
+        "address": "Park Street, Kolkata, West Bengal"
+    }
+]
+
+)
+
+db.cart.insertMany(
+    [
+    {
+        "_id": "order1",
+        "user_id": "user1",
+        "product": "Laptop",
+        "amount": 50000,
+        "order_date": "2024-08-01"
+    },
+    {
+        "_id": "order2",
+        "user_id": "user2",
+        "product": "Mobile Phone",
+        "amount": 15000,
+        "order_date": "2024-08-05"
+    },
+    {
+        "_id": "order3",
+        "user_id": "user1",
+        "product": "Headphones",
+        "amount": 2000,
+        "order_date": "2024-08-10"
+    },
+    {
+        "_id": "order4",
+        "user_id": "user3",
+        "product": "Tablet",
+        "amount": 25000,
+        "order_date": "2024-08-12"
+    },
+    {
+        "_id": "order5",
+        "user_id": "user4",
+        "product": "Smart Watch",
+        "amount": 8000,
+        "order_date": "2024-08-15"
+    }
+]
+)
+
+db.users.aggregate([
+{
+"$lookup": {
+"from": "orders",
+"localField": "_id",
+"foreignField": "user_id",
+"as": "orders" }
+}
+])
+
+db.createCollection("users", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age"],
+      properties: {
+        name: {
+          bsonType: "string",
+          description: "must be name"
+        },
+        age: {
+          bsonType: "int",
+          minimum: 18,
+          description: "must be number"
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error"
+})
+
+db.runCommand({
+  collMod: "users",
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age"],
+      properties: {
+        name: {
+          bsonType: "string",
+          description: "must be name"
+        },
+        age: {
+          bsonType: "int",
+          minimum: 18,
+          description: "must be number"
+        }
+      }
+    }
+  },
+  validationLevel: "moderate",
+  validationAction: "warn"
+})
+
+
+db.data.createIndex({ maker: 1 })
+db.data.dropIndex(maker)
+db.data.getIndexes()
+
+
+
